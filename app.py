@@ -7,7 +7,8 @@ def get_google_sheet():
   # Streamlit odczytuje [gcp_service_account] z TOML jako zwykły słownik
   creds_dict = dict(st.secrets["gcp_service_account"])
   gc = gspread.service_account_from_dict(creds_dict)
-  return gc.open("MCU Tracker Data").sheet1
+  # Otwieranie po Twoim ID arkusza
+  return gc.open_by_key("1q1g_51CjQQICHQ5kTOyIEVKelJudqSXSXxmwsbCd0fs").sheet1
 
 
 sheet = get_google_sheet()
