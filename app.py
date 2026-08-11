@@ -1,8 +1,9 @@
+import json
 import gspread
 from google.oauth2.service_account import Credentials
 import streamlit as st
 
-# Polączenie z API Google
+# 1. KONFIGURACJA POŁĄCZENIA Z GOOGLE SHEETS
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -11,7 +12,8 @@ SCOPE = [
 
 @st.cache_resource
 def get_google_sheet():
-  creds_dict = st.secrets["gcp_service_account"]
+  creds_raw = st.secrets["gcp_service_account"]
+  creds_dict = json.loads(creds_raw)
   credentials = Credentials.from_service_account_info(
       creds_dict, scopes=SCOPE
   )
@@ -22,6 +24,7 @@ def get_google_sheet():
 sheet = get_google_sheet()
 
 
+# 2. FUNKCJE DO ODCZYTU I ZAPISU W ARKUSZU
 def load_progress():
   records = sheet.get_all_records()
   progress = {}
@@ -39,7 +42,7 @@ def save_item_status(item_key, is_watched):
     sheet.append_row([item_key, val])
 
 
-# Lista produkcji MCU
+# 3. BAZA PRODUKCJI MCU
 mcu_data = [
     {"title": "Iron Man (2008)", "type": "movie"},
     {"title": "The Avengers (2012)", "type": "movie"},
@@ -65,6 +68,7 @@ mcu_data = [
     {"title": "Avengers: Doomsday (2026)", "type": "movie"},
 ]
 
+# 4. INTERFEJS UŻYTKOWNIKA (STREAMLIT)
 st.set_page_config(page_title="MCU Tracker", page_icon="🎬")
 st.title("🎬 MCU Marathon Tracker — Road to Doomsday")
 
@@ -73,7 +77,7 @@ if "user_progress" not in st.session_state:
 
 user_progress = st.session_state.user_progress
 
-# Obliczanie postępu
+# Liczenie postępu
 total_items = 0
 watched_items = 0
 
@@ -99,7 +103,7 @@ st.metric(
 st.progress(percentage / 100)
 st.divider()
 
-# Lista interaktywna
+# Listy z checkboxami
 for item in mcu_data:
   if item["type"] == "movie":
     current_val = user_progress.get(item["title"], False)
