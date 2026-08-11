@@ -15,9 +15,11 @@ def get_google_sheet():
   creds_raw = st.secrets["gcp_service_account"]
   creds_dict = json.loads(creds_raw)
 
-  # Naprawa klucza prywatnego (zamiana \\n na prawdziwy znak nowej linii)
+  # Naprawa formatu klucza prywatnego (zamiana \\n oraz konwersja na bytes UTF-8)
   if "private_key" in creds_dict:
-    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+    pk = creds_dict["private_key"].replace("\\n", "\n")
+    if isinstance(pk, str):
+      creds_dict["private_key"] = pk.encode("utf-8")
 
   credentials = Credentials.from_service_account_info(
       creds_dict, scopes=SCOPE
@@ -29,7 +31,7 @@ def get_google_sheet():
 sheet = get_google_sheet()
 
 
-# 2. FUNKCJE DO ODCZYTU I ZAPISU W ARKUSZU
+# 2. FUNKCJE DO ODCZYTU I ZAPISU W ARKUSZU GOOGLE
 def load_progress():
   records = sheet.get_all_records()
   progress = {}
@@ -47,7 +49,7 @@ def save_item_status(item_key, is_watched):
     sheet.append_row([item_key, val])
 
 
-# 3. PEŁNA BAZA PRODUKCJI MCU (CHRONOLOGICZNIE)
+# 3. PEŁNA BAZA PRODUKCJI MCU (FAZY 1-6 CHRONOLOGICZNIE)
 mcu_data = [
     # FAZA 1
     {"title": "Iron Man (2008)", "type": "movie"},
@@ -76,47 +78,139 @@ mcu_data = [
     {"title": "Avengers: Endgame (2019)", "type": "movie"},
     {"title": "Spider-Man: Far From Home (2019)", "type": "movie"},
     # FAZA 4
-    {"title": "WandaVision", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 10)]},
-    {"title": "The Falcon and the Winter Soldier", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
-    {"title": "Loki - Sezon 1", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
+    {
+        "title": "WandaVision",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 10)],
+    },
+    {
+        "title": "The Falcon and the Winter Soldier",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
+    {
+        "title": "Loki - Sezon 1",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
     {"title": "Black Widow (2021)", "type": "movie"},
-    {"title": "What If...? - Sezon 1", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 10)]},
+    {
+        "title": "What If...? - Sezon 1",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 10)],
+    },
     {"title": "Shang-Chi and the Legend of the Ten Rings (2021)", "type": "movie"},
     {"title": "Eternals (2021)", "type": "movie"},
-    {"title": "Hawkeye", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
+    {
+        "title": "Hawkeye",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
     {"title": "Spider-Man: No Way Home (2021)", "type": "movie"},
-    {"title": "Moon Knight", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
+    {
+        "title": "Moon Knight",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
     {"title": "Doctor Strange in the Multiverse of Madness (2022)", "type": "movie"},
-    {"title": "Ms. Marvel", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
+    {
+        "title": "Ms. Marvel",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
     {"title": "Thor: Love and Thunder (2022)", "type": "movie"},
-    {"title": "I Am Groot - Sezon 1", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 6)]},
-    {"title": "She-Hulk: Attorney at Law", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 10)]},
+    {
+        "title": "I Am Groot - Sezon 1",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 6)],
+    },
+    {
+        "title": "She-Hulk: Attorney at Law",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 10)],
+    },
     {"title": "Werewolf by Night (2022)", "type": "movie"},
     {"title": "Black Panther: Wakanda Forever (2022)", "type": "movie"},
     {"title": "The Guardians of the Galaxy Holiday Special (2022)", "type": "movie"},
     # FAZA 5
     {"title": "Ant-Man and the Wasp: Quantumania (2023)", "type": "movie"},
     {"title": "Guardians of the Galaxy Vol. 3 (2023)", "type": "movie"},
-    {"title": "Secret Invasion", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
-    {"title": "I Am Groot - Sezon 2", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 6)]},
-    {"title": "Loki - Sezon 2", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
+    {
+        "title": "Secret Invasion",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
+    {
+        "title": "I Am Groot - Sezon 2",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 6)],
+    },
+    {
+        "title": "Loki - Sezon 2",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
     {"title": "The Marvels (2023)", "type": "movie"},
-    {"title": "What If...? - Sezon 2", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 10)]},
-    {"title": "Echo", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 6)]},
-    {"title": "X-Men '97 - Sezon 1", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 11)]},
+    {
+        "title": "What If...? - Sezon 2",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 10)],
+    },
+    {
+        "title": "Echo",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 6)],
+    },
+    {
+        "title": "X-Men '97 - Sezon 1",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 11)],
+    },
     {"title": "Deadpool & Wolverine (2024)", "type": "movie"},
-    {"title": "Agatha All Along", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 10)]},
-    {"title": "What If...? - Sezon 3", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 9)]},
-    {"title": "Your Friendly Neighborhood Spider-Man", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 11)]},
+    {
+        "title": "Agatha All Along",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 10)],
+    },
+    {
+        "title": "What If...? - Sezon 3",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 9)],
+    },
+    {
+        "title": "Your Friendly Neighborhood Spider-Man",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 11)],
+    },
     {"title": "Captain America: Brave New World (2025)", "type": "movie"},
-    {"title": "Daredevil: Born Again", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 10)]},
+    {
+        "title": "Daredevil: Born Again",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 10)],
+    },
     {"title": "Thunderbolts* (2025)", "type": "movie"},
-    {"title": "Ironheart", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 7)]},
+    {
+        "title": "Ironheart",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 7)],
+    },
     {"title": "The Fantastic Four: First Steps (2025)", "type": "movie"},
-    {"title": "Eyes of Wakanda", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 5)]},
-    {"title": "Marvel Zombies", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 5)]},
-    {"title": "Wonder Man", "type": "series", "episodes": [f"Odcinek {i}" for i in range(1, 11)]},
-    # FAZA 6 & AHEAD
+    {
+        "title": "Eyes of Wakanda",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 5)],
+    },
+    {
+        "title": "Marvel Zombies",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 5)],
+    },
+    {
+        "title": "Wonder Man",
+        "type": "series",
+        "episodes": [f"Odcinek {i}" for i in range(1, 11)],
+    },
+    # FAZA 6
     {"title": "Avengers: Doomsday (2026)", "type": "movie"},
 ]
 
@@ -155,7 +249,7 @@ st.metric(
 st.progress(percentage / 100)
 st.divider()
 
-# Listy z checkboxami
+# Wyświetlanie listy z checkboxami
 for item in mcu_data:
   if item["type"] == "movie":
     current_val = user_progress.get(item["title"], False)
