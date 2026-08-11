@@ -1,31 +1,13 @@
-import json
 import gspread
-from google.oauth2.service_account import Credentials
 import streamlit as st
 
 # 1. KONFIGURACJA POŁĄCZENIA Z GOOGLE SHEETS
-SCOPE = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
-]
-
-
 @st.cache_resource
 def get_google_sheet():
-  creds_raw = st.secrets["gcp_service_account"]
-  creds_dict = json.loads(creds_raw)
-
-  # Naprawa formatu klucza prywatnego (zamiana \\n oraz konwersja na bytes UTF-8)
-  if "private_key" in creds_dict:
-    pk = creds_dict["private_key"].replace("\\n", "\n")
-    if isinstance(pk, str):
-      creds_dict["private_key"] = pk.encode("utf-8")
-
-  credentials = Credentials.from_service_account_info(
-      creds_dict, scopes=SCOPE
-  )
-  client = gspread.authorize(credentials)
-  return client.open("MCU Tracker Data").sheet1
+  # Streamlit odczytuje [gcp_service_account] z TOML jako zwykły słownik
+  creds_dict = dict(st.secrets["gcp_service_account"])
+  gc = gspread.service_account_from_dict(creds_dict)
+  return gc.open("MCU Tracker Data").sheet1
 
 
 sheet = get_google_sheet()
